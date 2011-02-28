@@ -109,7 +109,7 @@ module Goldberg
     it "should return the current build version" do
       project = Project.new('name')
       Environment.should_receive(:read_file).with('some_path/name/build_version').and_return('version')
-      project.build_version
+      project.build_version.should == 'version'
     end
 
     it "should be able to return the latest build" do

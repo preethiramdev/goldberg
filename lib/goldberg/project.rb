@@ -118,8 +118,6 @@ module Goldberg
     def write_change_list
       latest_build_version = latest_build.version
       new_build_version = build_version
-      latest_build_version.gsub!(/\n/,'')
-      new_build_version.gsub!(/\n/,'')
       changes = Environment.system_call_output("cd #{code_path} ; git diff --name-status #{latest_build_version} #{new_build_version}")
       Environment.write_file(change_list_path, changes)
     end
@@ -130,7 +128,9 @@ module Goldberg
     end
 
     def build_version
-      Environment.read_file(build_version_path)
+      Environment.read_file(build_version_path).tap do |version|
+        version.gsub!(/\n/,'')
+      end
     end
 
     def builds

@@ -13,7 +13,7 @@ module Goldberg
 
     it "should return the version" do
       build = Build.new('/projects/name/builds/latest')
-      Environment.should_receive(:read_file).with('/projects/name/builds/latest/build_version')
+      Environment.should_receive(:read_file).with('/projects/name/builds/latest/build_version').and_return("build_version")
       build.version
     end
 

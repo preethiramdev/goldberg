@@ -41,7 +41,9 @@ module Goldberg
 
     def version
       build_version_path = File.join(@path, 'build_version')
-      Environment.read_file(build_version_path)
+      Environment.read_file(build_version_path).tap do |version|
+        version.gsub!(/\n/,'')
+      end
     end
 
     def <=>(other)
