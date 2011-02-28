@@ -16,6 +16,7 @@ module Goldberg
 
     it "updates but doesn't yield if there are no updates" do
       project = Project.new('name')
+      project.should_receive(:run_bundler?).and_return(false)
       project.should_receive(:build_anyway?).and_return(false)
       Environment.should_receive(:system_call_output).with('cd some_path/name/code ; git pull').and_return('Already up-to-date.')
       project.update{|p| true.should_not be}
@@ -24,6 +25,7 @@ module Goldberg
     it "updates and yields if there are updates" do
       yielded_project = nil
       project = Project.new('name')
+      project.should_receive(:run_bundler?).and_return(false)
       Environment.should_receive(:system_call_output).with('cd some_path/name/code ; git pull').and_return('some changes')
       project.should_receive(:write_build_version)
       project.update{|p| yielded_project = p}
@@ -33,6 +35,7 @@ module Goldberg
     it "yields if there is a build to be forced even if there are no updates" do
       yielded_project = nil
       project = Project.new('name')
+      project.should_receive(:run_bundler?).and_return(false)
       ['build_status_path', 'build_log_path', 'force_build_path'].each do |method_name|
         File.should_receive(:exist?).with(project.send(method_name)).and_return(true)
       end
@@ -75,6 +78,7 @@ module Goldberg
 
     it "should get latest code when the build is forced" do
       project = Project.new('name')
+      project.should_receive(:run_bundler?).and_return(false)
       Environment.should_receive(:write_file).with(project.force_build_path, '')
       Environment.should_receive(:system_call_output).with('cd some_path/name/code ; git pull').and_return('some changes')
       project.should_receive(:build)
@@ -117,6 +121,43 @@ module Goldberg
       project.should_receive(:latest_build_number).and_return(42)
       File.should_receive(:exist?).with('some_path/name/builds/42').and_return(true)
       project.latest_build.number.should == "42"
+    end
+
+    it "should return true if the Gemfile or Gemfile.lock files have changed" do
+      project = Project.new('name')
+      File.should_receive(:exist?).with('some_path/name/change_list').and_return(true)
+      Environment.should_receive(:read_file).and_return('Gemfile')
+      project.should_receive(:latest_build_number).and_return(2)
+      project.run_bundler?.should == true
+    end
+
+    it "should return false if the Gemfile or Gemfile.lock files have not changed" do
+      project = Project.new('name')
+      File.should_receive(:exist?).with('some_path/name/change_list').and_return(true)
+      Environment.should_receive(:read_file).and_return('changed files')
+      project.should_receive(:latest_build_number).and_return(2)
+      project.run_bundler?.should == false
+    end
+
+    it "should return true if the Gemfile or Gemfile.lock files have not changed but the project has not been built before" do
+      project = Project.new('name')
+      File.should_receive(:exist?).with('some_path/name/change_list').and_return(true)
+      Environment.should_receive(:read_file).and_return('changed files')
+      project.should_receive(:latest_build_number).and_return(0)
+      project.run_bundler?.should == true
+    end
+
+    it "should return true if it is the first time the project is being built" do
+       project = Project.new('name')
+      File.should_receive(:exist?).with('some_path/name/change_list').and_return(false)
+      project.should_receive(:latest_build_number).and_return(0)
+      project.run_bundler?.should == true
+    end
+
+    it "should run bundle install" do
+      project = Project.new('name')
+      Environment.should_receive(:system).with('cd some_path/name/code ; bundle install')
+      project.run_bundler
     end
 
     it "should be able to return a null build if the project has never been built" do

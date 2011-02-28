@@ -35,6 +35,7 @@ module Goldberg
 
     def update
       @logger.info "Checking #{name}"
+      run_bundler if run_bundler?
       if !Environment.system_call_output("cd #{code_path} ; git pull").include?('Already up-to-date.') || build_anyway?
         write_build_version
         yield self
@@ -105,7 +106,7 @@ module Goldberg
     def id
       name.hash.abs
     end
-    
+
     def build_log
       Environment.read_file("#{build_log_path}")
     end
@@ -116,10 +117,19 @@ module Goldberg
     end
 
     def write_change_list
-      latest_build_version = latest_build.version
-      new_build_version = build_version
-      changes = Environment.system_call_output("cd #{code_path} ; git diff --name-status #{latest_build_version} #{new_build_version}")
+      changes = Environment.system_call_output("cd #{code_path} ; git diff --name-status #{latest_build.version} #{build_version}")
       Environment.write_file(change_list_path, changes)
+    end
+
+    def run_bundler?
+      if File.exist?(change_list_path)
+        change_list = Environment.read_file(change_list_path)
+      end
+      latest_build_number == 0 || change_list.include?('Gemfile')  
+    end
+
+    def run_bundler
+      Environment.system("cd #{code_path} ; bundle install")
     end
 
     def write_build_version
