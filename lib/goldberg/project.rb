@@ -100,7 +100,7 @@ module Goldberg
     end
 
     def last_built_at
-      File.ctime(build_status_path)
+      latest_build.timestamp
     end
 
     def id

@@ -21,5 +21,16 @@ module Goldberg
       Build.null.version.should == 'HEAD'
       Build.null.should be_null
     end
+    
+    it "should return a timestamp" do
+     build = Build.new('/projects/name/builds/latest')
+     File.should_receive(:ctime).with('/projects/name/builds/latest/build_status')
+     build.timestamp
+    end
+
+    it "should return a meaningful timestamp for a null build" do
+      Build.null.timestamp.should == 'Not yet built'
+      Build.null.should be_null
+    end
   end
 end

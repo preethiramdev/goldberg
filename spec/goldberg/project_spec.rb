@@ -88,7 +88,9 @@ module Goldberg
 
     it "should return the latest build time" do
       project = Project.new("name")
-      File.should_receive(:ctime).with('some_path/name/build_status')
+      build = Build.new('some_path/name/builds/latest_build')
+      project.should_receive(:latest_build).and_return(build)
+      build.should_receive(:timestamp)
       project.last_built_at
     end
 

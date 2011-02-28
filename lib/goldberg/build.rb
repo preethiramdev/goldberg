@@ -11,7 +11,7 @@ module Goldberg
     end
 
     def self.null
-      OpenStruct.new(:number => '', :status => 'never run', :version => 'HEAD', :null? => true)
+      OpenStruct.new(:number => '', :status => 'never run', :version => 'HEAD', :timestamp => "Not yet built", :null? => true)
     end
 
     def initialize(path)
@@ -29,14 +29,22 @@ module Goldberg
     def log
       Environment.read_file(log_path)
     end
+     
+    def build_status_path
+      File.join(@path, 'build_status')
+    end
 
     def status
-      build_status_path = File.join(@path, 'build_status')
+      build_status_path 
       if File.exist?(build_status_path)
         Environment.read_file(build_status_path) == 'true'
       else
         nil
       end
+    end
+
+    def timestamp
+      File.ctime(build_status_path)
     end
 
     def version
