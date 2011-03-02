@@ -71,7 +71,7 @@ module Goldberg
     def copy_latest_build_to_its_own_folder
       new_build_number = (latest_build_number + 1).to_s
       FileUtils.mkdir_p(File.join(builds_path, new_build_number), :verbose => true)
-      FileUtils.cp %w(build_status build_log build_version).map{|basename| File.join(path(basename))}, File.join(builds_path, new_build_number), :verbose => true
+      FileUtils.cp %w(build_status build_log build_version change_list).map{|basename| File.join(path(basename))}, File.join(builds_path, new_build_number), :verbose => true
       Environment.write_file(build_number_path, new_build_number)
     end
 
